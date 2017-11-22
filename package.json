@@ -7,14 +7,21 @@
     "debug": "nodemon --inspect",
     "db:create": "createdb --echo share-a-bit_dev",
     "db:drop": "dropdb --echo --if-exists share-a-bit_dev",
-    "db:migrate": "knex migrate:latest"
+    "db:migrate": "knex migrate:latest",
+    "db:reset": "npm run db:drop && npm run db:create && npm run db:migrate"
   },
   "dependencies": {
+    "bcrypt": "^1.0.3",
     "body-parser": "~1.18.2",
+    "chosen-js": "^1.8.2",
+    "connect-session-knex": "^1.4.0",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
     "ejs": "~2.5.7",
     "express": "~4.15.5",
+    "express-session": "^1.15.6",
+    "flash": "^1.1.0",
+    "font-awesome": "^4.7.0",
     "knex": "^0.14.1",
     "method-override": "^2.3.10",
     "morgan": "~1.9.0",
