@@ -10,12 +10,26 @@ const flash = require('flash');
 const KnexSessionStore = require('connect-session-knex')(session)
 const kx = require('./db/connection');
 
-const home = require('./routes/home');
+// const home = require('./routes/home');
 // const users = require('./routes/users');
 
 const root = require('./routes');
 
 const app = express();
+
+
+//Middleware for accepting headers
+BASE_URL = 'http://localhost:3001';
+
+app.use(function(req, res, next) {
+
+  res.setHeader('Access-Control-Allow-Origin', `${BASE_URL}`);
+  res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, x-amz-acl");
+  res.setHeader('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Credentials', true);
+
+  next();
+});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -33,8 +47,8 @@ app.use(methodOverride('_method'));
 // app.use('/', index);
 // app.use('/users', users);
 
-app.use('/', home);
-app.use(root);
+// app.use('/', home);
+app.use('/api', root);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

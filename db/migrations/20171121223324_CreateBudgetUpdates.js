@@ -4,7 +4,7 @@ exports.up = function(knex, Promise) {
   	table.increments('id')
   	table.string('title')
   	table.text('overview')
-  	table.integer('organizationId').references('organizations.id').onDelete('CASCADE')
+  	table.integer('userId').references('users.id').onDelete('CASCADE') // only organizations
   	table.timestamps(false, true)
   })
 };
