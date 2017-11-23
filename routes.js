@@ -143,13 +143,4 @@ root.get("/secret", authenticate, function(req, res){
 // });
 
 
-
-root.get("/secretDebug",
-  function(req, res, next){
-    console.log(req.get('Authorization'));
-    next();
-  }, function(req, res){
-    res.json("debugging");
-});
-
 module.exports = root;
