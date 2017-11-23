@@ -1,9 +1,11 @@
 const path = require('path');
 const {Router} = require('express');
+const OrganizationsController = require('./controllers/organizations');
 const bodyParser = require("body-parser");
 const multer = require('multer');
 const upload = multer({dest: path.join(__dirname, 'public', 'uploads')})
 const _ = require("lodash");
+const kx = require('./db/connection');
 
 //Passport and JWT Token shit
 const jwt = require('jsonwebtoken');
@@ -16,27 +18,23 @@ const JwtStrategy = passportJWT.Strategy;
 
 //Define Router Instances 
 const root = Router()
+const organizations = Router()
 
 root.use(passport.initialize());
 
 //Fake Users for testing:
-const users = [
-  {
-    id: 1,
-    name: 'ginny',
-    password: 'missioncontrol'
-  },
-  {
-    id: 2,
-    name: 'bestesttest',
-    password: 'test'
-  }
-];
-
-///////////// Testing Passport JWT in tutorial (see URL below)
-let jwtOptions = {}
-jwtOptions.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-jwtOptions.secretOrKey = process.env.SECRET_KEY;
+// const users = [
+//   {
+//     id: 1,
+//     name: 'ginny',
+//     password: 'missioncontrol'
+//   },
+//   {
+//     id: 2,
+//     name: 'bestesttest',
+//     password: 'test'
+//   }
+// ];
 
 const authenticate = (req, res, next) => {
 	const token = req.headers.authorization
@@ -57,20 +55,23 @@ const authenticate = (req, res, next) => {
 	}
 }
 
-let user;
+///////////// Testing Passport JWT in tutorial (see URL below)
+// let jwtOptions = {}
+// jwtOptions.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+// jwtOptions.secretOrKey = process.env.SECRET_KEY;
+// let user;
+// let strategy = new JwtStrategy(jwtOptions, function(jwt_payload, next) {
+//   console.log('payload received', jwt_payload);
+//   // usually this would be a database call:
+//   user = users[_.findIndex(users, {id: jwt_payload.id})];
+//   if (user) {
+//     return next(null, user);
+//   } else {
+//     return next(null, false);
+//   }
+// });
 
-let strategy = new JwtStrategy(jwtOptions, function(jwt_payload, next) {
-  console.log('payload received', jwt_payload);
-  // usually this would be a database call:
-  user = users[_.findIndex(users, {id: jwt_payload.id})];
-  if (user) {
-    return next(null, user);
-  } else {
-    return next(null, false);
-  }
-});
-
-passport.use(strategy);
+// passport.use(strategy);
 ///////////////////////////////////////////////////////////////// from github
 // var JwtStrategy = require('passport-jwt').Strategy,
 //     ExtractJwt = require('passport-jwt').ExtractJwt;
@@ -96,21 +97,17 @@ passport.use(strategy);
 ////////////////
 
 
-//Root Routes
-root.get('/', (req, res, next) => {
-	res.json({message: 'Testing API'})
-})
 
 
 //From JWT and Express tutorial 
 //(https://jonathanmh.com/express-passport-json-web-token-jwt-authentication-beginners/)
 root.post("/login", function(req, res) {
-	// return res.json({request: req.body})
-	let name;
-	let password;
+  // return res.json({request: req.body})
+  let name;
+  let password;
 
   if(req.body.name && req.body.password){
-  	// return res.json({message: 'inside if statement'})
+    // return res.json({message: 'inside if statement'})
     name = req.body.name;
     password = req.body.password;
   }
@@ -132,15 +129,33 @@ root.post("/login", function(req, res) {
 //////////////////////////
 
 root.get("/secret", authenticate, function(req, res){
-	// console.log(req.headers)
+  // console.log(req.headers)
   const {currentUser} = req
   res.json(`Success! You can not see this without a token ${currentUser.name}`);
 });
 
 // root.get("/secret", passport.authenticate('jwt', { session: false }), function(req, res){
-// 	// console.log(req.headers)
+//  // console.log(req.headers)
 //   res.json("Success! You can not see this without a token");
 // });
+
+
+//Root Routes
+root.get('/', (req, res, next) => {
+	res.json({message: 'Testing API'})
+})
+
+
+///////////////////   Organization Routes       ////////////////////////////
+root.use('/organizations', organizations)
+
+// index action
+organizations.get('/', OrganizationsController.index)
+
+//show action
+organizations.get('/:id', OrganizationsController.show)
+
+/////////////////////////////////////////////////////////////////////////////
 
 
 module.exports = root;
