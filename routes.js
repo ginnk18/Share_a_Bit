@@ -6,6 +6,7 @@ const multer = require('multer');
 const upload = multer({dest: path.join(__dirname, 'public', 'uploads')})
 const _ = require("lodash");
 const kx = require('./db/connection');
+const bcrypt = require('bcrypt')
 
 //Passport and JWT Token shit
 const jwt = require('jsonwebtoken');
@@ -22,27 +23,23 @@ const organizations = Router()
 
 root.use(passport.initialize());
 
-//Fake Users for testing:
-// const users = [
-//   {
-//     id: 1,
-//     name: 'ginny',
-//     password: 'missioncontrol'
-//   },
-//   {
-//     id: 2,
-//     name: 'bestesttest',
-//     password: 'test'
-//   }
-// ];
 
-const authenticate = (req, res, next) => {
+///////// Authenticating Logged In users with JWT token from request 
+//////// *** use this before routes that require an authenticated user
+async function authenticate(req, res, next) {
 	const token = req.headers.authorization
 	try {
 		// decode it
 		const decoded = jwt.verify(token, process.env.SECRET_KEY)
 		// try to find a user with that id (this would usually be a db call but for now stub it)
-		const user = users[_.findIndex(users, {id: decoded.id})];
+		// const user = users[_.findIndex(users, {id: decoded.id})];
+    const user = await kx
+                        .first()
+                        .from('users')
+                        .where({id: decoded.id})
+
+    console.log(user);
+
 		if (user) {
 			req.currentUser = user
 			// res.locals.currentUser = user
@@ -54,70 +51,34 @@ const authenticate = (req, res, next) => {
 		res.status(400).json({message:"Sorry not a token"});
 	}
 }
+////////////////////////////////////////////////////////////////////////
 
-///////////// Testing Passport JWT in tutorial (see URL below)
-// let jwtOptions = {}
-// jwtOptions.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-// jwtOptions.secretOrKey = process.env.SECRET_KEY;
-// let user;
-// let strategy = new JwtStrategy(jwtOptions, function(jwt_payload, next) {
-//   console.log('payload received', jwt_payload);
-//   // usually this would be a database call:
-//   user = users[_.findIndex(users, {id: jwt_payload.id})];
-//   if (user) {
-//     return next(null, user);
-//   } else {
-//     return next(null, false);
-//   }
-// });
-
-// passport.use(strategy);
-///////////////////////////////////////////////////////////////// from github
-// var JwtStrategy = require('passport-jwt').Strategy,
-//     ExtractJwt = require('passport-jwt').ExtractJwt;
-// var opts = {}
-// opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-// opts.secretOrKey = 'secret';
-// opts.issuer = 'accounts.examplesoft.com';
-// opts.audience = 'yoursite.net';
-// passport.use(new JwtStrategy(opts, function(jwt_payload, done) {
-// 	let user = users[_.findIndex(users, {id: jwt_payload.id})];
-//     // User.findOne({id: jwt_payload.sub}, function(err, user) {
-//         if (err) {
-//             return done(err, false);
-//         }
-//         if (user) {
-//             return done(null, user);
-//         } else {
-//             return done(null, false);
-//             // or you could create a new account
-//         }
-//     // });
-// }));
-////////////////
-
-
-
-
+///////////// LOGGING IN THROUGH API /////////////////////////////////////////
 //From JWT and Express tutorial 
 //(https://jonathanmh.com/express-passport-json-web-token-jwt-authentication-beginners/)
-root.post("/login", function(req, res) {
+root.post("/login", async function(req, res) {
   // return res.json({request: req.body})
-  let name;
+  let email;
   let password;
 
-  if(req.body.name && req.body.password){
+  if(req.body.email && req.body.password){
     // return res.json({message: 'inside if statement'})
-    name = req.body.name;
+    email = req.body.email;
     password = req.body.password;
   }
   // usually this would be a database call:
-  const user = users[_.findIndex(users, {name: name})];
+  // const user = users[_.findIndex(users, {name: name})];
+      const user = await kx
+                        .first()
+                        .from('users')
+                        .where({email: email})
+  console.log(user);
+
   if( ! user ){
     res.status(401).json({message:"no such user found"});
   }
 
-  if(user.password === req.body.password) {
+  if(await bcrypt.compare(password, user.passwordDigest)) {
     // from now on we'll identify the user by the id and the id is the only personalized value that goes into our token
     const payload = {id: user.id};
     const token = jwt.sign(payload, process.env.SECRET_KEY);
@@ -126,21 +87,19 @@ root.post("/login", function(req, res) {
     res.status(401).json({message:"passwords did not match"});
   }
 });
-//////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
 
+
+////// Testing Successsful Request with JWT Token
 root.get("/secret", authenticate, function(req, res){
   // console.log(req.headers)
   const {currentUser} = req
-  res.json(`Success! You can not see this without a token ${currentUser.name}`);
+  res.json(`Success! You can not see this without a token ${currentUser.firstName}`);
 });
-
-// root.get("/secret", passport.authenticate('jwt', { session: false }), function(req, res){
-//  // console.log(req.headers)
-//   res.json("Success! You can not see this without a token");
-// });
+////////////////////
 
 
-//Root Routes
+//Testing Root Routes
 root.get('/', (req, res, next) => {
 	res.json({message: 'Testing API'})
 })
