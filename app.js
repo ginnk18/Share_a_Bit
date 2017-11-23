@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const express = require('express');
 const path = require('path');
 const favicon = require('serve-favicon');
@@ -9,27 +11,42 @@ const session = require('express-session');
 const flash = require('flash');
 const KnexSessionStore = require('connect-session-knex')(session)
 const kx = require('./db/connection');
+const _ = require("lodash");
+
+//Passport and JWT Token shit
+const jwt = require('jsonwebtoken');
+
+const passport = require("passport");
+const passportJWT = require("passport-jwt");
+
+const ExtractJwt = passportJWT.ExtractJwt;
+const JwtStrategy = passportJWT.Strategy;
 
 // const home = require('./routes/home');
 // const users = require('./routes/users');
+
 
 const root = require('./routes');
 
 const app = express();
 
+// app.use(passport.initialize());
 
-//Middleware for accepting headers
+
+//Middleware for accepting headers for POST requests and JWT Tokens from
+//my front-end React client 
 BASE_URL = 'http://localhost:3001';
 
 app.use(function(req, res, next) {
 
   res.setHeader('Access-Control-Allow-Origin', `${BASE_URL}`);
-  res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, x-amz-acl");
+  res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
   res.setHeader('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Credentials', true);
 
   next();
 });
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
