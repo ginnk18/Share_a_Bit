@@ -1,6 +1,7 @@
 const path = require('path');
 const {Router} = require('express');
 const OrganizationsController = require('./controllers/organizations');
+const UsersController = require('./controllers/users');
 const bodyParser = require("body-parser");
 const multer = require('multer');
 const upload = multer({dest: path.join(__dirname, 'public', 'uploads')})
@@ -20,6 +21,7 @@ const JwtStrategy = passportJWT.Strategy;
 //Define Router Instances 
 const root = Router()
 const organizations = Router()
+const users = Router()
 
 root.use(passport.initialize());
 
@@ -94,7 +96,7 @@ root.post("/login", async function(req, res) {
 root.get("/secret", authenticate, function(req, res){
   // console.log(req.headers)
   const {currentUser} = req
-  res.json(`Success! You can not see this without a token ${currentUser.firstName}`);
+  res.json('Success! You can not see this without a token');
 });
 ////////////////////
 
@@ -116,5 +118,12 @@ organizations.get('/:id', OrganizationsController.show)
 
 /////////////////////////////////////////////////////////////////////////////
 
+///////////////////////       USERS ROUTES         /////////////////////////////
+root.use('/users', users)
+
+// show action
+users.get('/:id', UsersController.show)
+
+///////////////////////////////////////////////////////////////////////////////
 
 module.exports = root;
