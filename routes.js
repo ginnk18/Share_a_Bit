@@ -40,11 +40,23 @@ async function authenticate(req, res, next) {
                         .from('users')
                         .where({id: decoded.id})
 
-    console.log(user);
-
 		if (user) {
 			req.currentUser = user
 			// res.locals.currentUser = user
+      if(user.type === 'donor') {
+        const donor = await kx
+                              .first()
+                              .from('donors')
+                              .where({userId: decoded.id})
+        req.currentDonor = donor
+      } else if(user.type === 'organization') {
+        const organization = await kx
+                                    .first()
+                                    .from('organizations')
+                                    .where({userId: decoded.id})
+
+        req.currentOrg = organization
+      }
 			next()	
 		} else {
 			res.status(400).json({message: "your user doesn't exist?"})
@@ -82,9 +94,28 @@ root.post("/login", async function(req, res) {
 
   if(await bcrypt.compare(password, user.passwordDigest)) {
     // from now on we'll identify the user by the id and the id is the only personalized value that goes into our token
-    const payload = {id: user.id};
+    
+    let payload;
+
+    if(user.type === 'donor') {
+      const donor = await kx
+                            .first()
+                            .from('donors')
+                            .where({userId: user.id})
+
+      payload = {id: user.id, email: user.email, type: user.type, firstName: donor.firstName, lastName: donor.lastName};
+                            
+    } else if(user.type === 'organization') {
+      const organization = await kx
+                                  .first()
+                                  .from('organizations')
+                                  .where({userId: user.id})
+
+      payload = {id: user.id, email: user.email, type: user.type, name: organization.name}
+    }
+
     const token = jwt.sign(payload, process.env.SECRET_KEY);
-    res.json({message: "ok", token: token});
+    res.json({jwt: token});
   } else {
     res.status(401).json({message:"passwords did not match"});
   }
@@ -95,8 +126,8 @@ root.post("/login", async function(req, res) {
 ////// Testing Successsful Request with JWT Token
 root.get("/secret", authenticate, function(req, res){
   // console.log(req.headers)
-  const {currentUser} = req
-  res.json('Success! You can not see this without a token');
+  const {currentUser, currentDonor} = req
+  res.json(`Success! You can not see this without a token ${currentDonor.firstName}`);
 });
 ////////////////////
 
