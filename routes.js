@@ -2,6 +2,7 @@ const path = require('path');
 const {Router} = require('express');
 const OrganizationsController = require('./controllers/organizations');
 const UsersController = require('./controllers/users');
+const FavouritesController = require('./controllers/favourites');
 const bodyParser = require("body-parser");
 const multer = require('multer');
 const upload = multer({dest: path.join(__dirname, 'public', 'uploads')})
@@ -22,6 +23,7 @@ const JwtStrategy = passportJWT.Strategy;
 const root = Router()
 const organizations = Router()
 const users = Router()
+const favourites = Router({mergeParams: true})
 
 root.use(passport.initialize());
 
@@ -124,18 +126,18 @@ root.post("/login", async function(req, res) {
 
 
 ////// Testing Successsful Request with JWT Token
-root.get("/secret", authenticate, function(req, res){
-  // console.log(req.headers)
-  const {currentUser, currentDonor} = req
-  res.json(`Success! You can not see this without a token ${currentDonor.firstName}`);
-});
-////////////////////
+// root.get("/secret", authenticate, function(req, res){
+//   // console.log(req.headers)
+//   const {currentUser, currentDonor} = req
+//   res.json(`Success! You can not see this without a token ${currentDonor.firstName}`);
+// });
+////////////////////////////////////////////////////////////////////////////////////////
 
 
 //Testing Root Routes
-root.get('/', (req, res, next) => {
-	res.json({message: 'Testing API'})
-})
+// root.get('/', (req, res, next) => {
+// 	res.json({message: 'Testing API'})
+// })
 
 
 ///////////////////   Organization Routes       ////////////////////////////
@@ -148,6 +150,17 @@ organizations.get('/', OrganizationsController.index)
 organizations.get('/:id', OrganizationsController.show)
 
 /////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////// Favourites Routes /////////////////////////////////
+organizations.use('/:organizationId/favourites', favourites)
+
+//create a favourite:
+favourites.post('/', authenticate, FavouritesController.create)
+
+//destroy action:
+favourites.delete('/:id', authenticate, FavouritesController.destroy)
+
+////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////       USERS ROUTES         /////////////////////////////
 root.use('/users', users)
