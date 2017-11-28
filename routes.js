@@ -69,6 +69,27 @@ async function authenticate(req, res, next) {
 }
 ////////////////////////////////////////////////////////////////////////
 
+///////////////// Authorize Favourites /////////////////////////////////////
+///donors can only favourite an organization once
+
+async function authorizeFavourites(req, res, next) {
+    const {organizationId} = req.params
+    const {currentDonor} = req;
+
+    const favourite = await kx
+                              .first()
+                              .from('favourites')
+                              .where({organizationId: organizationId, donorId: currentDonor.id})
+
+    if(favourite === undefined) {
+      next()
+    } else {
+      res.status(400).json({error: 'You already favourited this organization!'})
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
 ///////////// LOGGING IN THROUGH API /////////////////////////////////////////
 //From JWT and Express tutorial 
 //(https://jonathanmh.com/express-passport-json-web-token-jwt-authentication-beginners/)
@@ -155,7 +176,7 @@ organizations.get('/:id', OrganizationsController.show)
 organizations.use('/:organizationId/favourites', favourites)
 
 //create a favourite:
-favourites.post('/', authenticate, FavouritesController.create)
+favourites.post('/', authenticate, authorizeFavourites, FavouritesController.create)
 
 //destroy action:
 favourites.delete('/:id', authenticate, FavouritesController.destroy)
