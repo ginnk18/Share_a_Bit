@@ -14,8 +14,6 @@ const UsersController = {
 								.from('users')
 								.where({id})
 
-			console.log(user);
-
 			if(user.type === 'donor') {
 				const donor = await kx
 									.first()
@@ -34,7 +32,22 @@ const UsersController = {
 					// 						.from('interests')
 					// 						.where({userId: id})
 
-				const data = {donor: donor}
+				//to get all donor's favourite organizations:
+					const favouriteIds = await kx
+												.select('organizationId')
+												.from('favourites')
+												.where({donorId: donor.id})
+
+					let favouriteOrgs = []
+					for(let i=0; i<favouriteIds.length; i++) {
+						let favourite = await kx
+												.first()
+												.from('organizations')
+												.where({id: favouriteIds[i].organizationId})
+						favouriteOrgs.push(favourite);
+					}
+
+				const data = {donor: donor, favouriteOrgs}
 				res.json(data)
 			} else if (user.type === 'organization') {
 
