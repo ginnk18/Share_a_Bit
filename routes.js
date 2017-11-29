@@ -165,10 +165,10 @@ root.post("/login", async function(req, res) {
 root.use('/organizations', organizations)
 
 // index action
-organizations.get('/', OrganizationsController.index)
+organizations.get('/', authenticate, OrganizationsController.index)
 
 //show action
-organizations.get('/:id', OrganizationsController.show)
+organizations.get('/:id', authenticate, OrganizationsController.show)
 
 /////////////////////////////////////////////////////////////////////////////
 
