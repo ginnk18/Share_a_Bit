@@ -3,6 +3,7 @@ const {Router} = require('express');
 const OrganizationsController = require('./controllers/organizations');
 const UsersController = require('./controllers/users');
 const FavouritesController = require('./controllers/favourites');
+const StripeController = require('./controllers/stripe');
 const bodyParser = require("body-parser");
 const multer = require('multer');
 const upload = multer({dest: path.join(__dirname, 'public', 'uploads')})
@@ -24,6 +25,7 @@ const root = Router()
 const organizations = Router()
 const users = Router()
 const favourites = Router({mergeParams: true})
+const stripe = Router()
 
 root.use(passport.initialize());
 
@@ -35,7 +37,6 @@ async function authenticate(req, res, next) {
 	try {
 		// decode it
 		const decoded = jwt.verify(token, process.env.SECRET_KEY)
-		// try to find a user with that id (this would usually be a db call but for now stub it)
 		// const user = users[_.findIndex(users, {id: decoded.id})];
     const user = await kx
                         .first()
@@ -170,6 +171,9 @@ organizations.get('/', authenticate, OrganizationsController.index)
 //show action
 organizations.get('/:id', authenticate, OrganizationsController.show)
 
+//send donation
+organizations.post('/:id/donate', authenticate, StripeController.orgDonation)
+
 /////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////// Favourites Routes /////////////////////////////////
@@ -188,6 +192,14 @@ root.use('/users', users)
 
 // show action
 users.get('/:id', UsersController.show)
+
+///////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////// STRIPE ROUTES  ////////////////////////////////////
+root.use('/stripe', stripe)
+
+stripe.post('/', authenticate, StripeController.create)
+
 
 ///////////////////////////////////////////////////////////////////////////////
 

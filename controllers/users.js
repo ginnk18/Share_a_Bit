@@ -21,11 +21,22 @@ const UsersController = {
 									.where({userId: id})
 
 				// To get All donor's transactions later: 
-				// const transactions = await kx
-				// 							.select('*')
-				// 							.from('transactions')
-				// 							.where({donorId: donor.id})
+				const transactions = await kx
+											.select('*')
+											.from('transactions')
+											.where({donorId: donor.id})
+											.orderBy('created_at', 'desc')
 
+				let orgsDonatedTo = [];
+				for(let i=0; i<transactions.length; i++) {
+					console.log('Org Ids from transactions: ', transactions[i].organizationId)
+					let orgDonatedTo = await kx
+												.first(['id', 'name'])
+												.from('organizations')
+												.where({id: transactions[i].organizationId})
+
+					orgsDonatedTo.push(orgDonatedTo);
+				}
 				// To get All donor's interests later:
 					// const interests = await kx
 					// 						.select('*')
@@ -47,7 +58,7 @@ const UsersController = {
 						favouriteOrgs.push(favourite);
 					}
 
-				const data = {donor: donor, favouriteOrgs}
+				const data = {donor: donor, favouriteOrgs, transactions, orgsDonatedTo}
 				res.json(data)
 			} else if (user.type === 'organization') {
 
