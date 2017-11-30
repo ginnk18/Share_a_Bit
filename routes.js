@@ -171,6 +171,9 @@ organizations.get('/', authenticate, OrganizationsController.index)
 //show action
 organizations.get('/:id', authenticate, OrganizationsController.show)
 
+//send donation
+organizations.post('/:id/donate', authenticate, StripeController.orgDonation)
+
 /////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////// Favourites Routes /////////////////////////////////

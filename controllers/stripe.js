@@ -31,8 +31,35 @@ const StripeController = {
 			favouriteOrgs.push(favourite);
 		}
 		const data = {donor: donor[0], favouriteOrgs}
-		console.log(data);
 		res.json(data)
+	},
+
+	async orgDonation (req, res, next) {
+		const {currentDonor} = req;
+		const organizationId = req.params.id;
+		const {amount} = req.body;
+
+		try {
+			const donor = await kx('donors')
+									.decrement('credits', amount)
+									.where({id: currentDonor.id})
+									.returning('*')
+
+			const organization = await kx('organizations')
+											.increment('credits', amount)
+											.where({id: organizationId})
+											.returning('*')
+			await kx 
+					.insert({donorId: currentDonor.id, organizationId, amount})
+					.into('transactions')
+
+			res.json({message: 'Transaction completed.'})
+
+		} catch(error) {
+			res.status(400).json({error: 'Unable to complete transaction.'})
+		}
+
+
 	}
 }
 
