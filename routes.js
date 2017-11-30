@@ -195,7 +195,7 @@ users.get('/:id', UsersController.show)
 /////////////////////////// STRIPE ROUTES  ////////////////////////////////////
 root.use('/stripe', stripe)
 
-stripe.post('/', StripeController.create)
+stripe.post('/', authenticate, StripeController.create)
 
 
 ///////////////////////////////////////////////////////////////////////////////
