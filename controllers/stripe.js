@@ -30,7 +30,8 @@ const StripeController = {
 									.where({id: favouriteIds[i].organizationId})
 			favouriteOrgs.push(favourite);
 		}
-		const data = {donor: donor, favouriteOrgs}
+		const data = {donor: donor[0], favouriteOrgs}
+		console.log(data);
 		res.json(data)
 	}
 }
