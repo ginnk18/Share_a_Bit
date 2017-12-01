@@ -190,8 +190,11 @@ favourites.delete('/:id', authenticate, FavouritesController.destroy)
 ///////////////////////       USERS ROUTES         /////////////////////////////
 root.use('/users', users)
 
-// show action
-users.get('/:id', UsersController.show)
+// show action for donors
+users.get('/donor/:id', UsersController.showDonor)
+
+//show action for organizations
+users.get('/organization/:id', UsersController.showOrg)
 
 ///////////////////////////////////////////////////////////////////////////////
 

@@ -5,7 +5,7 @@ const UsersController = {
 
 	},
 
-	async show (req, res, next) {
+	async showDonor (req, res, next) {
 		const {id} = req.params;
 
 		try {
@@ -60,23 +60,29 @@ const UsersController = {
 
 				const data = {donor: donor, favouriteOrgs, transactions, orgsDonatedTo}
 				res.json(data)
-			} else if (user.type === 'organization') {
-
-				const organization = await kx
-											.first()
-											.from('organizations')
-											.where({userId: id})
-
-				const campaigns = await kx 	
-										.select('*')
-										.from('campaigns')
-										.where({organizationId: organization.id})
-
-				const data = {organization: organization, campaigns: campaigns}
-				res.json(data)
-			}
+			} 
 		} catch(error) {
 			next(error)
+		}
+	},
+
+	async showOrg (req, res, next) {
+		const {id} = req.params;
+		
+		if (user.type === 'organization') {
+
+			const organization = await kx
+										.first()
+										.from('organizations')
+										.where({userId: id})
+
+			const campaigns = await kx 	
+									.select('*')
+									.from('campaigns')
+									.where({organizationId: organization.id})
+
+			const data = {organization: organization, campaigns: campaigns}
+			res.json(data)
 		}
 	}
 }

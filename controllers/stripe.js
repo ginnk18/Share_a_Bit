@@ -66,12 +66,6 @@ const StripeController = {
 									.where({id: currentDonor.id})
 									.returning('*')
 
-			// console.log('Current Donor: ', currentDonor)
-			// console.log('Donor', donor[0])
-			// console.log('Amount: ', amount)
-			// console.log('Donor credits minus amount using currentDonor: ', currentDonor.credits - amount)
-			// console.log('Donor credits minus amount using donor from DB: ', donor[0].credits - amount)
-
 			const organization = await kx('organizations')
 											.increment('credits', amount)
 											.where({id: organizationId})
