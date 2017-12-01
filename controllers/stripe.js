@@ -17,6 +17,22 @@ const StripeController = {
 								.where({id: currentDonor.id})
 								.returning('*')
 
+		const transactions = await kx
+											.select('*')
+											.from('transactions')
+											.where({donorId: currentDonor.id})
+											.orderBy('created_at', 'desc')
+
+		let orgsDonatedTo = [];
+		for(let i=0; i<transactions.length; i++) {
+			let orgDonatedTo = await kx
+										.first(['id', 'name'])
+										.from('organizations')
+										.where({id: transactions[i].organizationId})
+
+			orgsDonatedTo.push(orgDonatedTo);
+		}
+
 		const favouriteIds = await kx
 									.select('organizationId')
 									.from('favourites')
@@ -30,7 +46,7 @@ const StripeController = {
 									.where({id: favouriteIds[i].organizationId})
 			favouriteOrgs.push(favourite);
 		}
-		const data = {donor: donor[0], favouriteOrgs}
+		const data = {donor: donor[0], favouriteOrgs, transactions, orgsDonatedTo}
 		res.json(data)
 	},
 
