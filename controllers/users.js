@@ -68,21 +68,31 @@ const UsersController = {
 
 	async showOrg (req, res, next) {
 		const {id} = req.params;
-		
-		if (user.type === 'organization') {
 
-			const organization = await kx
-										.first()
-										.from('organizations')
-										.where({userId: id})
+		try {
+			const user = await kx
+									.first()
+									.from('users')
+									.where({id})
+			
+			if (user.type === 'organization') {
 
-			const campaigns = await kx 	
-									.select('*')
-									.from('campaigns')
-									.where({organizationId: organization.id})
+				const organization = await kx
+											.first()
+											.from('organizations')
+											.where({userId: id})
 
-			const data = {organization: organization, campaigns: campaigns}
-			res.json(data)
+				const campaigns = await kx 	
+										.select('*')
+										.from('campaigns')
+										.where({organizationId: organization.id})
+
+				const data = {organization: organization, campaigns: campaigns}
+				res.json(data)
+			}
+
+		} catch(error) {
+			next(error)
 		}
 	}
 }
