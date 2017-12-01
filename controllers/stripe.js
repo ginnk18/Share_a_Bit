@@ -56,10 +56,21 @@ const StripeController = {
 		const {amount} = req.body;
 
 		try {
+
+			if(currentDonor.credits - amount < 0) {
+				return res.status(400).json({error: 'Not enough credits'})
+			}
+
 			const donor = await kx('donors')
 									.decrement('credits', amount)
 									.where({id: currentDonor.id})
 									.returning('*')
+
+			// console.log('Current Donor: ', currentDonor)
+			// console.log('Donor', donor[0])
+			// console.log('Amount: ', amount)
+			// console.log('Donor credits minus amount using currentDonor: ', currentDonor.credits - amount)
+			// console.log('Donor credits minus amount using donor from DB: ', donor[0].credits - amount)
 
 			const organization = await kx('organizations')
 											.increment('credits', amount)
