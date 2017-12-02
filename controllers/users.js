@@ -104,21 +104,25 @@ const UsersController = {
 				}
 
 				const transactionsByFreqDonor = await kx
-														.raw(`SELECT COUNT("donorId"), "donorId" from transactions where "organizationId" = ${organization.id} group by "donorId" order by "count" DESC`)
-														// .select('COUNT("donorId"), "donorId"')
-														// .from('transactions')
-														// .where({organizationId: organization.id})
-														// .groupBy('donorId')
+														.raw(`SELECT COUNT("donorId"), "donorId" 
+															from transactions 
+															where "organizationId" = ${organization.id} 
+															group by "donorId" 
+															order by "count" DESC 
+															LIMIT 3`)	
 
-				// SELECT COUNT("donorId"), "donorId"
-				// from transactions
-				// where "organizationId" = 71
-				// group by "donorId";
-				
-				// knex.raw('select * from users where id = ?', [1]).then(function(resp) { ... });		
+				const freqDonorTransactions = transactionsByFreqDonor.rows
+				let mostFreqDonors = [];
+				for(let i=0; i<freqDonorTransactions.length; i++) {
+					let freqDonor = await kx
+											.first()
+											.from('donors')
+											.where({id: freqDonorTransactions[i].donorId})
 
-				console.log(transactionsByFreqDonor)
-				const data = {organization, campaigns, transactions, donors}
+					mostFreqDonors.push(freqDonor)
+				}
+				console.log(mostFreqDonors)
+				const data = {organization, campaigns, transactions, donors, freqDonorTransactions, mostFreqDonors}
 				res.json(data)
 			}
 
