@@ -108,8 +108,7 @@ const UsersController = {
 															from transactions 
 															where "organizationId" = ${organization.id} 
 															group by "donorId" 
-															order by "count" DESC 
-															LIMIT 3`)	
+															order by "count" DESC`)	
 
 				const freqDonorTransactions = transactionsByFreqDonor.rows
 				let mostFreqDonors = [];
