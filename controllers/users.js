@@ -29,7 +29,6 @@ const UsersController = {
 
 				let orgsDonatedTo = [];
 				for(let i=0; i<transactions.length; i++) {
-					console.log('Org Ids from transactions: ', transactions[i].organizationId)
 					let orgDonatedTo = await kx
 												.first(['id', 'name'])
 												.from('organizations')
@@ -86,8 +85,25 @@ const UsersController = {
 										.select('*')
 										.from('campaigns')
 										.where({organizationId: organization.id})
+										.orderBy('created_at', 'desc')
 
-				const data = {organization: organization, campaigns: campaigns}
+				const transactions = await kx
+											.select('*')
+											.from('transactions')
+											.where({organizationId: organization.id})
+											.orderBy('created_at', 'desc')
+
+				let donors = [];
+				for(let i=0; i<transactions.length; i++) {
+					let donor = await kx
+										.first()
+										.from('donors')
+										.where({id: transactions[i].donorId})
+
+					donors.push(donor);
+				}
+
+				const data = {organization, campaigns, transactions, donors}
 				res.json(data)
 			}
 
@@ -98,3 +114,17 @@ const UsersController = {
 }
 
 module.exports = UsersController;
+
+
+/////
+
+	// let orgsDonatedTo = [];
+	// 			for(let i=0; i<transactions.length; i++) {
+	// 				console.log('Org Ids from transactions: ', transactions[i].organizationId)
+	// 				let orgDonatedTo = await kx
+	// 											.first(['id', 'name'])
+	// 											.from('organizations')
+	// 											.where({id: transactions[i].organizationId})
+
+	// 				orgsDonatedTo.push(orgDonatedTo);
+	// 			}
