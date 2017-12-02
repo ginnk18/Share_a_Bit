@@ -103,6 +103,21 @@ const UsersController = {
 					donors.push(donor);
 				}
 
+				const transactionsByFreqDonor = await kx
+														.raw(`SELECT COUNT("donorId"), "donorId" from transactions where "organizationId" = ${organization.id} group by "donorId" order by "count" DESC`)
+														// .select('COUNT("donorId"), "donorId"')
+														// .from('transactions')
+														// .where({organizationId: organization.id})
+														// .groupBy('donorId')
+
+				// SELECT COUNT("donorId"), "donorId"
+				// from transactions
+				// where "organizationId" = 71
+				// group by "donorId";
+				
+				// knex.raw('select * from users where id = ?', [1]).then(function(resp) { ... });		
+
+				console.log(transactionsByFreqDonor)
 				const data = {organization, campaigns, transactions, donors}
 				res.json(data)
 			}
