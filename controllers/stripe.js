@@ -5,17 +5,64 @@ const StripeController = {
 	async create (req, res, next) {
 		const {currentDonor} = req;
 
-		const charge = await stripe.charges.create({
-									amount: 500,
-									currency: 'usd',
-									description: '$5 for 5 donation credits',
-									source: req.body.id
-								})
+		if(req.body.bitcoin) {
+			const charge = await stripe.sources.create({
+										type: 'bitcoin',
+										amount: 500,
+										currency: 'usd',
+										owner: {
+											email: req.body.email
+										}
+									})
 
-		const donor = await kx('donors')
-								.increment('credits', 5)
-								.where({id: currentDonor.id})
-								.returning('*')
+			const donor = await kx('donors')
+									.increment('bitcredits', 5)
+									.where({id: currentDonor.id})
+									.returning('*')
+									
+			const transactions = await kx
+										.select('*')
+										.from('transactions')
+										.where({donorId: currentDonor.id})
+										.orderBy('created_at', 'desc')
+
+		let orgsDonatedTo = [];
+		for(let i=0; i<transactions.length; i++) {
+			let orgDonatedTo = await kx
+										.first(['id', 'name'])
+										.from('organizations')
+										.where({id: transactions[i].organizationId})
+
+			orgsDonatedTo.push(orgDonatedTo);
+		}
+
+		const favouriteIds = await kx
+									.select('organizationId')
+									.from('favourites')
+									.where({donorId: currentDonor.id})
+
+		let favouriteOrgs = []
+		for(let i=0; i<favouriteIds.length; i++) {
+			let favourite = await kx
+									.first()
+									.from('organizations')
+									.where({id: favouriteIds[i].organizationId})
+			favouriteOrgs.push(favourite);
+		}
+		const data = {donor: donor[0], favouriteOrgs, transactions, orgsDonatedTo}
+		res.json(data)
+		} else {
+			const charge = await stripe.charges.create({
+										amount: 500,
+										currency: 'usd',
+										description: '$5 for 5 donation credits',
+										source: req.body.id
+									})
+
+			const donor = await kx('donors')
+									.increment('credits', 5)
+									.where({id: currentDonor.id})
+									.returning('*')
 
 		const transactions = await kx
 											.select('*')
@@ -48,6 +95,9 @@ const StripeController = {
 		}
 		const data = {donor: donor[0], favouriteOrgs, transactions, orgsDonatedTo}
 		res.json(data)
+			
+		}
+
 	},
 
 	async orgDonation (req, res, next) {
