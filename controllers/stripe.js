@@ -103,28 +103,49 @@ const StripeController = {
 	async orgDonation (req, res, next) {
 		const {currentDonor} = req;
 		const organizationId = req.params.id;
-		const {amount} = req.body;
+		const {amount, type} = req.body;
 
 		try {
 
-			if(currentDonor.credits - amount < 0) {
-				return res.status(400).json({error: 'Not enough credits'})
+			if(type === 'credits') {
+				if(currentDonor.credits - amount < 0) {
+					return res.status(400).json({error: 'Not enough credits'})
+				}
+
+				await kx('donors')
+						.decrement('credits', amount)
+						.where({id: currentDonor.id})
+
+				await kx('organizations')
+						.increment('credits', amount)
+						.where({id: organizationId})
+						
+				await kx 
+						.insert({donorId: currentDonor.id, organizationId, amount, type})
+						.into('transactions')
+
+				res.json({message: 'Transaction completed.'})
+				
+			} else if (type === 'bitcredits') {
+				if(currentDonor.bitcredits - amount < 0) {
+					return res.status(400).json({error: 'Not enough bitcredits.'})
+				}
+
+				await kx('donors')
+						.decrement('bitcredits', amount)
+						.where({id: currentDonor.id})
+
+				await kx('organizations')
+						.increment('bitcredits', amount)
+						.where({id: organizationId})
+
+				await kx
+						.insert({donorId: currentDonor.id, organizationId, amount, type})
+						.into('transactions')
+
+				res.json({message: 'Transaction completed.'})
 			}
 
-			const donor = await kx('donors')
-									.decrement('credits', amount)
-									.where({id: currentDonor.id})
-									.returning('*')
-
-			const organization = await kx('organizations')
-											.increment('credits', amount)
-											.where({id: organizationId})
-											.returning('*')
-			await kx 
-					.insert({donorId: currentDonor.id, organizationId, amount})
-					.into('transactions')
-
-			res.json({message: 'Transaction completed.'})
 
 		} catch(error) {
 			res.status(400).json({error: 'Unable to complete transaction.'})
