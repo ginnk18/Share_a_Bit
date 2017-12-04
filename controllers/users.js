@@ -49,15 +49,41 @@ const UsersController = {
 												.where({donorId: donor.id})
 
 					let favouriteOrgs = []
+					let favouriteOrgCampaigns = []
+					let favouriteOrgUpdates = []
 					for(let i=0; i<favouriteIds.length; i++) {
 						let favourite = await kx
 												.first()
 												.from('organizations')
 												.where({id: favouriteIds[i].organizationId})
+
+						let favouriteOrgCampaign = await kx
+															.first()
+															.from('campaigns')
+															.where({organizationId: favouriteIds[i].organizationId})
+
+						let favouriteOrgUpdate = await kx
+														.select()
+														.from('updates')
+														.where({organizationId: favouriteIds[i].organizationId})
+
 						favouriteOrgs.push(favourite);
+						favouriteOrgCampaigns.push(favouriteOrgCampaign);
+						if(favouriteOrgUpdate !== undefined) {
+							favouriteOrgUpdates.push(favouriteOrgUpdate);
+						}
 					}
 
-				const data = {donor: donor, favouriteOrgs, transactions, orgsDonatedTo}
+					// let favouriteOrgCampaigns = []
+					// for (let i=0; i<favouriteIds.length; i++) {
+					// 	let favouriteOrgCampaign = await kx
+					// 										.first()
+					// 										.from('campaigns')
+					// 										.where({organizationId: favouriteIds[i].organizationId})
+					// 	favouriteOrgCampaigns.push(favouriteOrgCampaign)
+					// }
+
+				const data = {donor: donor, favouriteOrgs, transactions, orgsDonatedTo, favouriteOrgCampaigns, favouriteOrgUpdates}
 				res.json(data)
 			} 
 		} catch(error) {
