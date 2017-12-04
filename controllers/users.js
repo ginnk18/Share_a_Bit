@@ -87,6 +87,12 @@ const UsersController = {
 										.where({organizationId: organization.id})
 										.orderBy('created_at', 'desc')
 
+				const updates = await kx
+										.select('*')
+										.from('updates')
+										.where({organizationId: organization.id})
+										.orderBy('created_at', 'desc')
+
 				const transactions = await kx
 											.select('*')
 											.from('transactions')
@@ -120,8 +126,8 @@ const UsersController = {
 
 					mostFreqDonors.push(freqDonor)
 				}
-				console.log(mostFreqDonors)
-				const data = {organization, campaigns, transactions, donors, freqDonorTransactions, mostFreqDonors}
+
+				const data = {organization, campaigns, updates, transactions, donors, freqDonorTransactions, mostFreqDonors}
 				res.json(data)
 			}
 

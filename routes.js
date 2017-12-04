@@ -4,6 +4,7 @@ const OrganizationsController = require('./controllers/organizations');
 const UsersController = require('./controllers/users');
 const FavouritesController = require('./controllers/favourites');
 const StripeController = require('./controllers/stripe');
+const UpdatesController = require('./controllers/updates');
 const bodyParser = require("body-parser");
 const multer = require('multer');
 const upload = multer({dest: path.join(__dirname, 'public', 'uploads')})
@@ -26,6 +27,7 @@ const organizations = Router()
 const users = Router()
 const favourites = Router({mergeParams: true})
 const stripe = Router()
+const updates = Router()
 
 root.use(passport.initialize());
 
@@ -45,7 +47,7 @@ async function authenticate(req, res, next) {
 
 		if (user) {
 			req.currentUser = user
-			// res.locals.currentUser = user
+      
       if(user.type === 'donor') {
         const donor = await kx
                               .first()
@@ -95,17 +97,14 @@ async function authorizeFavourites(req, res, next) {
 //From JWT and Express tutorial 
 //(https://jonathanmh.com/express-passport-json-web-token-jwt-authentication-beginners/)
 root.post("/login", async function(req, res) {
-  // return res.json({request: req.body})
   let email;
   let password;
 
   if(req.body.email && req.body.password){
-    // return res.json({message: 'inside if statement'})
     email = req.body.email;
     password = req.body.password;
   }
-  // usually this would be a database call:
-  // const user = users[_.findIndex(users, {name: name})];
+
       const user = await kx
                         .first()
                         .from('users')
@@ -117,7 +116,6 @@ root.post("/login", async function(req, res) {
   }
 
   if(await bcrypt.compare(password, user.passwordDigest)) {
-    // from now on we'll identify the user by the id and the id is the only personalized value that goes into our token
     
     let payload;
 
@@ -145,21 +143,6 @@ root.post("/login", async function(req, res) {
   }
 });
 ////////////////////////////////////////////////////////////////////////////////////
-
-
-////// Testing Successsful Request with JWT Token
-// root.get("/secret", authenticate, function(req, res){
-//   // console.log(req.headers)
-//   const {currentUser, currentDonor} = req
-//   res.json(`Success! You can not see this without a token ${currentDonor.firstName}`);
-// });
-////////////////////////////////////////////////////////////////////////////////////////
-
-
-//Testing Root Routes
-// root.get('/', (req, res, next) => {
-// 	res.json({message: 'Testing API'})
-// })
 
 
 ///////////////////   Organization Routes       ////////////////////////////
@@ -202,6 +185,21 @@ users.get('/organization/:id', UsersController.showOrg)
 root.use('/stripe', stripe)
 
 stripe.post('/', authenticate, StripeController.create)
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////// UPDATES ROUTES //////////////////////////////////
+root.use('/updates', updates)
+
+//index action
+updates.get('/', authenticate, UpdatesController.index)
+
+//show action
+updates.get('/:id', authenticate, UpdatesController.show)
+
+//create an update
+updates.post('/', authenticate, UpdatesController.create)
 
 
 ///////////////////////////////////////////////////////////////////////////////
