@@ -27,7 +27,12 @@ const UpdatesController = {
 								.from('updates')
 								.where({id})
 
-		res.json({update})
+		const organization = await kx
+									.first()
+									.from('organizations')
+									.where({id: update.organizationId})
+
+		res.json({update, organization})
 	},
 
 	async create (req, res, next) {
