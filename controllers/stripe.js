@@ -152,6 +152,59 @@ const StripeController = {
 		}
 
 
+	},
+
+	async campaignDonation(req, res, next) {
+		const {currentDonor} = req;
+		const campaignId = req.params.id;
+		const organizationId = req.params.orgId;
+		const {amount, type} = req.body;
+
+		try {
+
+			if(type === 'credits') {
+				if(currentDonor.credits - amount < 0) {
+					return res.status(400).json({error: 'Not enough credits'})
+				}
+
+				await kx('donors')
+						.decrement('credits', amount)
+						.where({id: currentDonor.id})
+
+				await kx('campaigns')
+						.increment('credits', amount)
+						.where({id: campaignId})
+
+				await kx 
+						.insert({donorId: currentDonor.id, organizationId, amount, type})
+						.into('transactions')
+
+				res.json({message: 'Transaction completed.'})
+				
+			} else if (type === 'bitcredits') {
+				if(currentDonor.bitcredits - amount < 0) {
+					return res.status(400).json({error: 'Not enough bitcredits.'})
+				}
+
+				await kx('donors')
+						.decrement('bitcredits', amount)
+						.where({id: currentDonor.id})
+
+				await kx('campaigns')
+						.increment('bitcredits', amount)
+						.where({id: campaignId})
+
+				await kx 
+						.insert({donorId: currentDonor.id, organizationId, amount, type})
+						.into('transactions')
+
+				res.json({message: 'Transaction completed.'})
+			}
+
+
+		} catch(error) {
+			res.status(400).json({error: 'Unable to complete transaction.'})
+		}
 	}
 }
 
