@@ -6,6 +6,7 @@ const FavouritesController = require('./controllers/favourites');
 const StripeController = require('./controllers/stripe');
 const UpdatesController = require('./controllers/updates');
 const CampaignsController = require('./controllers/campaigns');
+const MessagesController = require('./controllers/messages');
 const bodyParser = require("body-parser");
 const multer = require('multer');
 const upload = multer({dest: path.join(__dirname, 'public', 'uploads')})
@@ -30,6 +31,7 @@ const favourites = Router({mergeParams: true})
 const stripe = Router()
 const updates = Router()
 const campaigns = Router()
+const messages = Router()
 
 root.use(passport.initialize());
 
@@ -218,5 +220,11 @@ campaigns.post('/', authenticate, CampaignsController.create)
 //send donation
 campaigns.post('/:id/donate/:orgId', authenticate, StripeController.campaignDonation)
 ///////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////// MESSAGES ROUTES ///////////////////////////////////
+root.use('/messages', messages)
+
+messages.post('/', authenticate, MessagesController.create)
+//////////////////////////////////////////////////////////////////////////////////
 
 module.exports = root;
