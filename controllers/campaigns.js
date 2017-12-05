@@ -41,11 +41,11 @@ const CampaignsController = {
 
 		const campaign = await kx
 							.insert({name, description, endDate, organizationId: currentOrg.id})
-							.into('updates')
+							.into('campaigns')
 							.returning('*')
 
 
-		res.json({update})
+		res.json({campaign})
 	},
 
 	destroy (req, res, next) {

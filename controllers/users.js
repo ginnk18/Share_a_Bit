@@ -153,6 +153,14 @@ const UsersController = {
 					mostFreqDonors.push(freqDonor)
 				}
 
+				// const mostPopularCampaign = await kx
+				// 									.
+
+// 				select *, (credits + bitcredits) as total_credits
+				// from campaigns
+				// order by total_credits DESC
+				// LIMIT 1;
+
 				const data = {organization, campaigns, updates, transactions, donors, freqDonorTransactions, mostFreqDonors}
 				res.json(data)
 			}
