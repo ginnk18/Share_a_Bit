@@ -74,15 +74,6 @@ const UsersController = {
 						}
 					}
 
-					// let favouriteOrgCampaigns = []
-					// for (let i=0; i<favouriteIds.length; i++) {
-					// 	let favouriteOrgCampaign = await kx
-					// 										.first()
-					// 										.from('campaigns')
-					// 										.where({organizationId: favouriteIds[i].organizationId})
-					// 	favouriteOrgCampaigns.push(favouriteOrgCampaign)
-					// }
-
 				const data = {donor: donor, favouriteOrgs, transactions, orgsDonatedTo, favouriteOrgCampaigns, favouriteOrgUpdates}
 				res.json(data)
 			} 
@@ -136,7 +127,7 @@ const UsersController = {
 				}
 
 				const transactionsByFreqDonor = await kx
-														.raw(`SELECT COUNT("donorId"), "donorId" 
+														.raw(`SELECT COUNT("donorId"), SUM("amount"), "donorId" 
 															from transactions 
 															where "organizationId" = ${organization.id} 
 															group by "donorId" 
@@ -153,15 +144,14 @@ const UsersController = {
 					mostFreqDonors.push(freqDonor)
 				}
 
-				// const mostPopularCampaign = await kx
-				// 									.
+				const mostPopularCampaign = await kx
+													.raw(`SELECT *, (credits + bitcredits) as total_credits
+														from campaigns order by total_credits DESC
+														LIMIT 1`)
 
-// 				select *, (credits + bitcredits) as total_credits
-				// from campaigns
-				// order by total_credits DESC
-				// LIMIT 1;
+				const mostPopCampaign = mostPopularCampaign.rows
 
-				const data = {organization, campaigns, updates, transactions, donors, freqDonorTransactions, mostFreqDonors}
+				const data = {organization, campaigns, updates, transactions, donors, freqDonorTransactions, mostFreqDonors, mostPopCampaign}
 				res.json(data)
 			}
 
