@@ -212,6 +212,9 @@ root.use('/campaigns', campaigns)
 //show action
 campaigns.get('/:id', authenticate, CampaignsController.show)
 
+//create action
+campaigns.post('/', authenticate, CampaignsController.create)
+
 //send donation
 campaigns.post('/:id/donate/:orgId', authenticate, StripeController.campaignDonation)
 ///////////////////////////////////////////////////////////////////////////////

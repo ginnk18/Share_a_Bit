@@ -15,6 +15,8 @@ const StripeController = {
 										}
 									})
 
+			console.log('Bitcoin Charge: ', charge)
+
 			const donor = await kx('donors')
 									.increment('bitcredits', 5)
 									.where({id: currentDonor.id})
@@ -42,14 +44,32 @@ const StripeController = {
 									.where({donorId: currentDonor.id})
 
 		let favouriteOrgs = []
+		let favouriteOrgCampaigns = []
+		let favouriteOrgUpdates = []
 		for(let i=0; i<favouriteIds.length; i++) {
 			let favourite = await kx
 									.first()
 									.from('organizations')
 									.where({id: favouriteIds[i].organizationId})
+
+			let favouriteOrgCampaign = await kx
+											.first()
+											.from('campaigns')
+											.where({organizationId: favouriteIds[i].organizationId})
+
+			let favouriteOrgUpdate = await kx
+											.select()
+											.from('updates')
+											.where({organizationId: favouriteIds[i].organizationId})
+
 			favouriteOrgs.push(favourite);
+			favouriteOrgCampaigns.push(favouriteOrgCampaign);
+			if(favouriteOrgUpdate !== undefined) {
+				favouriteOrgUpdates.push(favouriteOrgUpdate);
+			}
 		}
-		const data = {donor: donor[0], favouriteOrgs, transactions, orgsDonatedTo}
+
+		const data = {donor: donor[0], favouriteOrgs, transactions, orgsDonatedTo, favouriteOrgCampaigns, favouriteOrgUpdates}
 		res.json(data)
 		} else {
 			const charge = await stripe.charges.create({
@@ -58,6 +78,8 @@ const StripeController = {
 										description: '$5 for 5 donation credits',
 										source: req.body.id
 									})
+
+			console.log('Card charge: ', charge)
 
 			const donor = await kx('donors')
 									.increment('credits', 5)
@@ -86,14 +108,31 @@ const StripeController = {
 									.where({donorId: currentDonor.id})
 
 		let favouriteOrgs = []
+		let favouriteOrgCampaigns = []
+		let favouriteOrgUpdates = []
 		for(let i=0; i<favouriteIds.length; i++) {
 			let favourite = await kx
 									.first()
 									.from('organizations')
 									.where({id: favouriteIds[i].organizationId})
+
+			let favouriteOrgCampaign = await kx
+											.first()
+											.from('campaigns')
+											.where({organizationId: favouriteIds[i].organizationId})
+
+			let favouriteOrgUpdate = await kx
+											.select()
+											.from('updates')
+											.where({organizationId: favouriteIds[i].organizationId})
+
 			favouriteOrgs.push(favourite);
+			favouriteOrgCampaigns.push(favouriteOrgCampaign);
+			if(favouriteOrgUpdate !== undefined) {
+				favouriteOrgUpdates.push(favouriteOrgUpdate);
+			}
 		}
-		const data = {donor: donor[0], favouriteOrgs, transactions, orgsDonatedTo}
+		const data = {donor: donor[0], favouriteOrgs, transactions, orgsDonatedTo, favouriteOrgCampaigns, favouriteOrgUpdates}
 		res.json(data)
 			
 		}

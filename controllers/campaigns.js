@@ -36,16 +36,16 @@ const CampaignsController = {
 	},
 
 	async create (req, res, next) {
-		// const {title, overview} = req.body;
-		// const {currentOrg} = req;
+		const {name, description, endDate} = req.body;
+		const {currentOrg} = req;
 
-		// const update = await kx
-		// 					.insert({title, overview, organizationId: currentOrg.id})
-		// 					.into('updates')
-		// 					.returning('*')
+		const campaign = await kx
+							.insert({name, description, endDate, organizationId: currentOrg.id})
+							.into('updates')
+							.returning('*')
 
 
-		// res.json({update})
+		res.json({update})
 	},
 
 	destroy (req, res, next) {
