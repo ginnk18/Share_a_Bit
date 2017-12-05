@@ -98,11 +98,13 @@ const UsersController = {
 											.from('organizations')
 											.where({userId: id})
 
-				const campaigns = await kx 	
-										.select('*')
-										.from('campaigns')
-										.where({organizationId: organization.id})
-										.orderBy('created_at', 'desc')
+				const campaignsRawQuery = await kx 	
+										.raw(`SELECT *, (credits + bitcredits) as total_credits
+											 from campaigns
+											 where "organizationId" = ${organization.id}
+											 order by created_at DESC`)
+
+				const campaigns = campaignsRawQuery.rows
 
 				const updates = await kx
 										.select('*')
@@ -146,7 +148,9 @@ const UsersController = {
 
 				const mostPopularCampaign = await kx
 													.raw(`SELECT *, (credits + bitcredits) as total_credits
-														from campaigns order by total_credits DESC
+														from campaigns 
+														where "organizationId" = ${organization.id} 
+														order by total_credits DESC
 														LIMIT 1`)
 
 				const mostPopCampaign = mostPopularCampaign.rows
